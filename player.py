@@ -73,6 +73,7 @@ class ModernMP3Player:
         
         btn_opts = {'bg': self.panel_bg, 'fg': self.fg_color, 'activebackground': self.bg_color, 'activeforeground': self.accent_color, 'bd': 0, 'cursor': 'hand2'}
         tk.Button(top_bar, text="📂 SCAN NEW FOLDER", font=('Helvetica', 9, 'bold'), command=self.scan_new_folder, **btn_opts).pack(side='right', padx=15, pady=5)
+        tk.Button(top_bar, text="💾 EXPORT JSON", font=('Helvetica', 9, 'bold'), command=self.export_json, **btn_opts).pack(side='right', padx=5, pady=5)
 
         # --- Bottom Player Bar ---
         self.bottom_bar = tk.Frame(self.root, bg=self.panel_bg, height=80)
@@ -88,11 +89,13 @@ class ModernMP3Player:
         self.art_label.pack(side='left', pady=10)
         
         text_frame = tk.Frame(info_frame, bg=self.panel_bg)
-        text_frame.pack(side='left', padx=10, pady=18, fill='y')
+        text_frame.pack(side='left', padx=10, pady=10, fill='y')
         self.lbl_bottom_title = tk.Label(text_frame, text="No Song Selected", bg=self.panel_bg, fg=self.fg_color, font=('Helvetica', 10, 'bold'), anchor='w')
         self.lbl_bottom_title.pack(fill='x')
         self.lbl_bottom_artist = tk.Label(text_frame, text="-", bg=self.panel_bg, fg=self.muted_color, font=('Helvetica', 8), anchor='w')
         self.lbl_bottom_artist.pack(fill='x')
+        
+        self.btn_lyrics = tk.Button(text_frame, text="📝 Lyrics", font=('Helvetica', 8, 'bold'), command=self.show_lyrics, **btn_opts)
         
         # Bottom Bar: Center (Controls & Progress)
         center_frame = tk.Frame(self.bottom_bar, bg=self.panel_bg)
@@ -163,6 +166,16 @@ class ModernMP3Player:
         # Right Panel (Songs - Secondary)
         right_panel = tk.Frame(self.split_pane, bg=self.panel_bg, highlightbackground=self.bg_color, highlightthickness=1)
         self.split_pane.add(right_panel, minsize=300)
+        
+        # Search Frame
+        search_frame = tk.Frame(right_panel, bg=self.panel_bg)
+        search_frame.pack(fill='x', padx=20, pady=(15, 0))
+        
+        self.entry_search = tk.Entry(search_frame, bg=self.bg_color, fg=self.fg_color, insertbackground=self.fg_color, bd=0, font=('Helvetica', 10))
+        self.entry_search.pack(side='left', fill='x', expand=True, ipady=4)
+        self.entry_search.bind('<Return>', self.search_songs)
+        
+        tk.Button(search_frame, text='🔍', bg=self.bg_color, fg=self.fg_color, bd=0, command=self.search_songs).pack(side='right', padx=(5, 0))
         
         self.lbl_folder_title = tk.Label(right_panel, text="Folder Tracks", bg=self.panel_bg, fg=self.fg_color, font=('Helvetica', 14, 'bold'), anchor='w')
         self.lbl_folder_title.pack(fill='x', padx=20, pady=15)
@@ -289,6 +302,54 @@ class ModernMP3Player:
         if folder_path:
             self.load_root_directory(folder_path)
 
+    def search_songs(self, event=None):
+        query = self.entry_search.get().lower()
+        if not query:
+            if getattr(self, 'current_folder', '') == "Search_Results":
+                self.current_folder = getattr(self, '_previous_folder', self.music_folders[0] if self.music_folders else "")
+            self.load_folder_songs(auto_play=False)
+            return
+            
+        if not self.scanner or not self.scanner.sound_files:
+            return
+            
+        if getattr(self, 'current_folder', '') != "Search_Results":
+            self._previous_folder = self.current_folder
+            
+        results = []
+        for sound in self.scanner.sound_files:
+            title = (sound.title or sound.file_name).lower()
+            artist = (sound.artist or "").lower()
+            if query in title or query in artist:
+                results.append(sound)
+                
+        self.folder_songs = results
+        self.current_folder = "Search_Results"
+        
+        self.lbl_folder_title.config(text=f"Search: '{query}' - {len(self.folder_songs)} Tracks")
+        self.list_songs.delete(0, tk.END)
+        
+        for i, s in enumerate(self.folder_songs):
+            self.list_songs.insert(tk.END, f"{i+1}   {s.title or s.file_name}")
+
+    def export_json(self):
+        if not self.scanner:
+            messagebox.showinfo("Export", "No files scanned to export.")
+            return
+            
+        file_path = filedialog.asksaveasfilename(
+            defaultextension=".json",
+            filetypes=[("JSON files", "*.json"), ("All files", "*.*")],
+            title="Save Data as JSON"
+        )
+        
+        if file_path:
+            try:
+                self.scanner.save_to_json(file_path)
+                messagebox.showinfo("Success", f"Data exported successfully.")
+            except Exception as e:
+                messagebox.showerror("Error", f"Could not save JSON: {e}")
+
     def update_file_display(self):
         if self.current_song:
             title = self.current_song.title or Path(self.current_song.file_name).stem
@@ -302,6 +363,11 @@ class ModernMP3Player:
                 self.lbl_time_tot.config(text=self.format_time(int(self.current_song.duration)))
             else:
                 self.lbl_time_tot.config(text="0:00")
+
+            if getattr(self.current_song, 'lyrics', None):
+                self.btn_lyrics.pack(anchor='w', pady=(2, 0))
+            else:
+                self.btn_lyrics.pack_forget()
 
             # Update album art
             if getattr(self.current_song, 'cover_data', None):
@@ -418,6 +484,29 @@ class ModernMP3Player:
                                 print(self.current_song.src)
             except: pass
         self.root.after(500, self.update_timer)
+
+    def show_lyrics(self):
+        if not self.current_song or not getattr(self.current_song, 'lyrics', None):
+            return
+            
+        lyrics_window = tk.Toplevel(self.root)
+        lyrics_window.title(f"Lyrics - {self.current_song.title or self.current_song.file_name}")
+        lyrics_window.geometry("400x500")
+        lyrics_window.configure(bg=self.bg_color)
+        
+        # Add a scrollbar
+        scrollbar = tk.Scrollbar(lyrics_window)
+        scrollbar.pack(side='right', fill='y')
+        
+        text_widget = tk.Text(lyrics_window, bg=self.bg_color, fg=self.fg_color, 
+                             font=('Helvetica', 11), wrap='word', padx=20, pady=20,
+                             yscrollcommand=scrollbar.set)
+        text_widget.pack(fill='both', expand=True)
+        scrollbar.config(command=text_widget.yview)
+        
+        # Insert lyrics
+        text_widget.insert('1.0', self.current_song.lyrics)
+        text_widget.config(state='disabled')
 
     def format_time(self, seconds):
         m, s = divmod(seconds, 60)

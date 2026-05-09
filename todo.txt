@@ -1,0 +1,28 @@
+
+#when the player starts:
+
+folders = scanner.get_folders_with_music()
+folder = get_current_folder(folders)
+song = get_current_song(folder)
+
+#in the UI play_song(song):
+#show the folders in to a list, create a onclick to select this folder get_current_song(folder) and set this song
+#show the song tags including the cover
+#play the song play the song using the song.time to start from there
+
+the buttons should be previous, next but this buttons should change the folder
+and set the song from the folder 
+song = get_current_song(folder_selected)
+play_song(song)
+
+#the player
+if the song is finished
+    song = get_song_ramdomply(folder)
+    play the song
+
+
+show a small music player desing too, add a progress bar and buttons
+the buttons should be: next, play, pause, stop, repeat, volume down, volume up
+
+
+split the ui in two, the list of folders, and the contros to change the folder this secction must be more important in the desing, the list of songs of the folder, the music player that is the less important in the design

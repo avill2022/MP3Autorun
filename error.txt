@@ -1,0 +1,9 @@
+Traceback (most recent call last):
+  File "/home/avill/develop/c#/projects/MP3Autorun/MP3Autorun/music_player/main.py", line 4, in <module>
+    from music_app import MusicApp
+  File "/home/avill/develop/c#/projects/MP3Autorun/MP3Autorun/music_player/music_app.py", line 3, in <module>
+    import tkinter as tk
+  File "/nix/store/0r6k8xa2kgqyp3r4v2w7yrb80ma2iawm-python3-3.13.12/lib/python3.13/tkinter/__init__.py", line 38, in <module>
+    import _tkinter # If this fails your Python may not be configured for Tk
+    ^^^^^^^^^^^^^^^
+ModuleNotFoundError: No module named '_tkinter'

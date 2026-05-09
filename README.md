@@ -1,42 +1,42 @@
-# MP3Autorun
-![Untitled](https://user-images.githubusercontent.com/105819329/206521295-22678360-fa05-4978-9f63-7a6ac4dfc738.png)
+# MP3 Autorun Player
 
-# AutoRunMp3 Retro Player
-
-AutoRunMp3 Retro Player is a small and lightweight desktop mp3 music player, designed for easy management of your music collection.
+A modern, recursive Python music player with a two-panel UI for easy folder navigation and playback. It organizes your music collection by directory, parses embedded metadata (like album covers and lyrics), and remembers what you've played to offer a smart rotation of your tracks.
 
 ## Features
 
-- Easy to use and navigate user interface
-- Play, pause, and stop music playback
-- Shuffle and repeat modes
-- Create and manage playlists
-- Display album art and song information
-- Auto-play when USB drive with mp3 files is inserted
-- Configurable hotkeys for common tasks
-- Compact mode for easy access and minimal distraction
-- Open source and free to use
+- **Modern Two-Panel UI**: A clean split-view interface prioritizing folder navigation on the left and song selection on the right.
+- **Recursive Directory Scanning**: Accurately maps your music folders, allowing playback of all audio files nested within any selected directory hierarchy.
+- **Smart Rotation & Randomizer**: Stateful folder and song tracking ensures balanced rotation. It keeps track of previously visited directories and tracks, ensuring a fresh mix until all options are exhausted.
+- **Embedded Metadata Support**: Automatically extracts and displays album cover art and lyrics from supported audio formats (MP3, FLAC, etc.).
+- **Automatic Playback**: Remembers playback state and automatically plays the next song/folder based on intelligent selection logic.
 
-## Getting Started
+## Prerequisites
 
-### Prerequisites
+- Python 3.8+
+- Required dependencies listed in `requirements.txt`.
 
-- Microsoft Visual Studio 2019 or later
-- .NET 5.0 or later
-
-### Installation
+## Installation
 
 1. Clone the repository or download the source code.
-2. Open the solution file in Visual Studio.
-3. Build the project and run the application.
+2. Install the required dependencies using pip:
+   ```bash
+   pip install -r requirements.txt
+   ```
 
-## Contributing
+## Usage
 
-If you're interested in contributing to AutoRunMp3 Retro Player, please take a look at our [contribution guidelines](CONTRIBUTING.md) for more information.
+1. Run the application:
+   ```bash
+   python main.py
+   ```
+2. **First Run**: Select your root music folder when prompted (or configure it in the UI/code).
+3. **Left Panel**: Browse through the recursive folder structure of your music collection.
+4. **Right Panel**: View and select songs from the highlighted folder.
+5. **Playback**: Use the bottom control bar for play/pause, next, previous, and to view current song metadata and album art.
 
-## License
+## Technologies Used
 
-AutoRunMp3 Retro Player is open source and released under the APACHE(LICENSE).
-
-
-
+- **Tkinter**: Standard Python interface to the Tk GUI toolkit.
+- **Pygame**: Used for robust audio playback control.
+- **Mutagen**: For reading metadata (album art, lyrics, titles) from various audio formats.
+- **Pillow (PIL)**: For image processing and displaying album cover art in the UI.

@@ -1,28 +1,54 @@
+# Yousawso: Video Player Adaptation
 
-#when the player starts:
+The goal of this task is to adapt the existing MP3 player into a video player called **yousawso**, capable of scanning video files, extracting their metadata, and playing the videos with the existing playback logic.
 
-folders = scanner.get_folders_with_music()
-folder = get_current_folder(folders)
-song = get_current_song(folder)
+## User Review Required
+> [!IMPORTANT]
+> **Video Playback Library:** I propose using `python-vlc` to embed video playback directly into the Tkinter application. This is the most robust way to play video formats (like MP4, AVI, MKV) within Tkinter. This will require the system to have VLC Media Player installed. Is this acceptable?
+> 
+> **Metadata Extraction:** I propose using `pymediainfo` or `tinytag` for metadata extraction because `mutagen` is mainly focused on audio formats. `pymediainfo` is very comprehensive but requires the `mediainfo` system library. `tinytag` is lightweight but might lack some advanced video metadata. Do you have a preference? I'll use `tinytag` as the default in this plan for easier setup.
 
-#in the UI play_song(song):
-#show the folders in to a list, create a onclick to select this folder get_current_song(folder) and set this song
-#show the song tags including the cover
-#play the song play the song using the song.time to start from there
+## Proposed Changes
 
-the buttons should be previous, next but this buttons should change the folder
-and set the song from the folder 
-song = get_current_song(folder_selected)
-play_song(song)
+### Configuration
+#### [MODIFY] requirements.txt
+- Add `python-vlc` for video playback.
+- Add `tinytag` for reading video metadata quickly during scans.
+- Remove `pygame` as we will no longer use it for playback.
 
-#the player
-if the song is finished
-    song = get_song_ramdomply(folder)
-    play the song
+#### [MODIFY] README.md
+- Rename the project to **yousawso**.
+- Update descriptions to refer to a video player instead of a music player.
+- Update the features and dependencies to reflect the new libraries (`python-vlc`, etc.).
 
+---
+### Scanner
+#### [MODIFY] scanner.py
+- Update `SUPPORTED_EXTENSIONS` to include video formats (`.mp4`, `.mkv`, `.avi`, `.mov`, `.webm`).
+- Rename `Sound` class to `Video` and `SoundScanner` to `VideoScanner` for semantic clarity.
+- Update the metadata extraction logic (`_load_tags`) to use `tinytag` to extract video title, duration, resolution, etc., instead of audio-specific tags like lyrics or album cover.
 
-show a small music player desing too, add a progress bar and buttons
-the buttons should be: next, play, pause, stop, repeat, volume down, volume up
+---
+### Application & Player
+#### [MODIFY] player.py
+- Replace `pygame.mixer` with `vlc.Instance` and `vlc.MediaPlayer`.
+- Add a video display widget (e.g., `tk.Frame` or `tk.Canvas`) in the UI where the video will be rendered using `player.set_xwindow()` (on Linux) or `player.set_hwnd()` (on Windows).
+- Adapt `play_song`, `pause_song`, `stop_song`, `seek_song`, and `update_timer` methods to interact with the VLC media player object instead of `pygame`.
+- Update variable names and UI text from "Song" to "Video".
 
+#### [MODIFY] main.py
+- Rename `SoundScanner` imports to `VideoScanner`.
+- Update text prompts from "MUSIC PLAYER MENU" to "VIDEO PLAYER MENU".
+- Update variable names from `songs` to `videos`.
 
-split the ui in two, the list of folders, and the contros to change the folder this secction must be more important in the desing, the list of songs of the folder, the music player that is the less important in the design
+#### [MODIFY] selecter.py
+- Keep the stateful random selection logic intact but rename variables (`get_song_ramdomply` to `get_video_randomly`) to reflect the new application domain.
+
+## Verification Plan
+### Automated Tests
+- Run `python scanner.py` on a directory with video files to ensure metadata is parsed properly without errors.
+
+### Manual Verification
+- Launch the application (`python player.py` or `python main.py`) and browse to a folder containing video files.
+- Double-click a video file to ensure it plays inside the application window properly.
+- Verify that controls (play, pause, next, volume, progress bar seek) affect the video playback properly.
